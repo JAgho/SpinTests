@@ -3,6 +3,11 @@ uuid = "361d196f-5a68-406c-81fd-16864870ccd4"
 authors = ["James <gholamja@cardiff.ac.uk> and contributors"]
 version = "1.0.0-DEV"
 
+[deps]
+KomaMRI = "6a340f8b-2cdf-4c04-99be-4953d9b66d0a"
+SpheriCart = "5caf2b29-02d9-47a3-9434-5931c85ba645"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+
 [compat]
 julia = "1.6.7"
 

@@ -4,7 +4,7 @@ module SpinTests
 
 end
 
-using LinearAlgebra, StaticArrays, KomaMRI
+using LinearAlgebra, StaticArrays, KomaMRI, SpheriCart
 function build_phantom()
     phantom = zeros(Bool, 100,100,100)
     r = 50
@@ -32,7 +32,7 @@ Z = basis(Rs)
 
 sph_basis= reshape(Z, (size(off_resonance)..., 36))
 sph_field = zeros(100,100,100,36)
-coeffs = randn(36)
+coeffs = randn(36).*1e-6
 function mul_sph_coeffs(sph_basis, coeffs, sph_field)
     for i in 1:36
        @views sph_field[:,:,:,i] .= sph_basis[:,:,:,i] .* coeffs[i] 
@@ -52,8 +52,9 @@ obj = Phantom{Float64}(x=rs[1][pind],y=rs[2][pind],z=rs[3][pind], T1=[100e-3 for
 #hyperfine scanner parameters
 scanner = Scanner(0.0633, 1.0e-6, 20.0e-3, 200, 2.0e-6, 1.0e-5, 1.0e-5, 1.0e-6, 2.0e-5, 1e-4, 1e-5)
 
-sys = Scanner(0.0633, 1.0e-6, 20.0e-3, 200, 2.0e-6, 1.0e-5, 1.0e-5, 1.0e-6, 2.0e-5, 1e-4, 1e-5)
-ampRF = 2e-6                        # 2 uT RF amplitude
+sys = Scanner(0.0633, 155e-6, 24.0e-3, 100, 2.0e-5, 1.0e-5, 1.0e-5, 1.0e-6, 2.0e-5, 1e-4, 1e-5)
+sys.Gmax = 20
+ampRF = 34e-6                        # 2 uT RF amplitude
 durRF = π / 2 / (2π * γ * ampRF)    # required duration for a 90 deg RF pulse
 durRefocus = π / (2π * γ * ampRF) 
 exc = [RF(ampRF,durRF);;]
@@ -82,7 +83,7 @@ end
 
 
 
-Inversion + Delay(1e-3)
+plot_seq(Inversion + Delay(1e-3))
 
 
 
@@ -104,7 +105,7 @@ end
 function sequence_example(FOV::Real, N::Integer)
 
     # Define initial paramters (TODO: consider when N is even)
-    sys = Scanner(0.0633, 1.0e-6, 2.0e-3, 200, 2.0e-6, 1.0e-5, 1.0e-5, 1.0e-6, 2.0e-5, 1e-4, 1e-5)
+    sys = Scanner(0.0633, 10.0e-6, 20.0e-3, 200, 2.0e-5, 1.0e-5, 1.0e-5, 1.0e-6, 2.0e-5, 1e-4, 1e-5)
 	Δt = sys.ADC_Δt
 	Gmax = sys.Gmax
 	Nx = Ny = N #Square acquisition
@@ -113,7 +114,7 @@ function sequence_example(FOV::Real, N::Integer)
     Δτ = Ta/(Ny-1)
 	Ga = 1/(γ*Δt*FOV)
 	ζ = Ga / sys.Smax
-	Ga ≥ sys.Gmax ? error("Ga=$(Ga*1e3) mT/m exceeds Gmax=$(Gmax*1e3) mT/m, increase Δt to at least Δt_min="*string(round(1/(γ*Gmax*FOV),digits=2))*" us.") : 0
+	Ga ≥ sys.Gmax ? error("Ga=$(Ga*1e3) mT/m exceeds Gmax=$(Gmax*1e3) mT/m, increase Δt to at least Δt_min="*string(round(1/(γ*Gmax*FOV),digits=4))*" us.") : 0
 	ϵ1 = Δτ/(Δτ+ζ)
 
 	# EPI base
@@ -136,6 +137,6 @@ function sequence_example(FOV::Real, N::Integer)
 end
 
 seq = sequence_example(0.2, 100)
-plot_seq(seq; range=[0 30])
+plot_seq(seq;)
 plot_phantom_map(obj, :ρ)
 
